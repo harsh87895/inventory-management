@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProductServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">inventory-management</a> &gt; <a href="index.source.html" class="el_package">com.inventory.service.impl</a> &gt; <span class="el_source">ProductServiceImpl.java</span></div><h1>ProductServiceImpl.java</h1><pre class="source lang-java linenums">package com.inventory.service.impl;
+
+import com.inventory.dto.request.ProductRequest;
+import com.inventory.dto.response.ProductResponse;
+import com.inventory.mapper.ProductMapper;
+import com.inventory.model.Category;
+import com.inventory.model.Product;
+import com.inventory.repository.CategoryRepository;
+import com.inventory.repository.ProductRepository;
+import com.inventory.service.ProductService;
+import com.inventory.service.validation.ProductValidationService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.inventory.exception.ResourceNotFoundException;
+
+@Service
+<span class="fc" id="L20">@RequiredArgsConstructor</span>
+@Transactional(readOnly = true)
+public class ProductServiceImpl implements ProductService {
+
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final ProductValidationService validationService;
+    private final ProductMapper productMapper;
+
+    @Override
+    @Transactional
+    public ProductResponse createProduct(ProductRequest request) {
+        // Validate product creation
+<span class="fc" id="L33">        validationService.validateProductCreation(request);</span>
+
+        // Get category after validation
+<span class="fc" id="L36">        Category category = categoryRepository.findById(request.getCategoryId()).get();</span>
+
+        // Create and save product
+<span class="fc" id="L39">        Product product = productMapper.toEntity(request, category);</span>
+<span class="fc" id="L40">        Product savedProduct = productRepository.save(product);</span>
+        
+<span class="fc" id="L42">        return productMapper.toResponse(savedProduct);</span>
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse updateProduct(Long id, ProductRequest request) {
+        // Validate product update
+<span class="nc" id="L49">        validationService.validateProductUpdate(id, request);</span>
+
+        // Get product and category after validation
+<span class="nc" id="L52">        Product product = productRepository.findById(id).get();</span>
+<span class="nc" id="L53">        Category category = categoryRepository.findById(request.getCategoryId()).get();</span>
+
+        // Update and save product
+<span class="nc" id="L56">        productMapper.updateEntity(product, request, category);</span>
+<span class="nc" id="L57">        Product updatedProduct = productRepository.save(product);</span>
+        
+<span class="nc" id="L59">        return productMapper.toResponse(updatedProduct);</span>
+    }
+
+    @Override
+    public ProductResponse getProductById(Long id) {
+<span class="fc" id="L64">        Product product = productRepository.findByIdWithSkus(id)</span>
+<span class="fc" id="L65">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Product&quot;, &quot;id&quot;, id));</span>
+<span class="fc" id="L66">        return productMapper.toResponse(product);</span>
+    }
+
+    @Override
+    public Page&lt;ProductResponse&gt; searchProducts(Long categoryId, String name, Pageable pageable) {
+<span class="fc" id="L71">        return productRepository.findByCategoryIdAndNameContaining(categoryId, name, pageable)</span>
+<span class="fc" id="L72">                .map(productMapper::toResponse);</span>
+    }
+
+    @Override
+    @Transactional
+    public void deleteProduct(Long id) {
+<span class="fc" id="L78">        validationService.validateProductDeletion(id);</span>
+<span class="fc" id="L79">        productRepository.deleteById(id);</span>
+<span class="fc" id="L80">    }</span>
+} 
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

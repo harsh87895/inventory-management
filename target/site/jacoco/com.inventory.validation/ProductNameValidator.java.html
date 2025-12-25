@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProductNameValidator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">inventory-management</a> &gt; <a href="index.source.html" class="el_package">com.inventory.validation</a> &gt; <span class="el_source">ProductNameValidator.java</span></div><h1>ProductNameValidator.java</h1><pre class="source lang-java linenums">package com.inventory.validation;
+
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
+
+<span class="fc" id="L6">public class ProductNameValidator implements ConstraintValidator&lt;ValidProductName, String&gt; {</span>
+
+    @Override
+    public void initialize(ValidProductName constraintAnnotation) {
+<span class="fc" id="L10">    }</span>
+
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+<span class="fc bfc" id="L14" title="All 2 branches covered.">        if (value == null) {</span>
+<span class="fc" id="L15">            return true; // Let @NotBlank handle null validation</span>
+        }
+
+        // Product name must:
+        // 1. Start with a letter
+        // 2. Contain only letters, numbers, spaces, hyphens, and parentheses
+        // 3. Not have consecutive spaces or special characters
+        // 4. Not end with a space or special character
+<span class="fc bfc" id="L23" title="All 2 branches covered.">        return value.matches(&quot;^[A-Za-z][A-Za-z0-9\\s\\-()]*[A-Za-z0-9)]$&quot;) &amp;&amp;</span>
+<span class="pc bpc" id="L24" title="1 of 2 branches missed.">               !value.contains(&quot;  &quot;) &amp;&amp; // No consecutive spaces</span>
+<span class="pc bpc" id="L25" title="1 of 2 branches missed.">               !value.contains(&quot;--&quot;) &amp;&amp; // No consecutive hyphens</span>
+<span class="pc bpc" id="L26" title="1 of 2 branches missed.">               !value.contains(&quot;()&quot;) &amp;&amp; // No empty parentheses</span>
+<span class="pc bpc" id="L27" title="1 of 2 branches missed.">               !value.contains(&quot;)(&quot;); // No consecutive parentheses</span>
+    }
+} 
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

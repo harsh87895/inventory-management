@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.inventory.controller.ProductControllerTest
+-------------------------------------------------------------------------------
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.198 s -- in com.inventory.controller.ProductControllerTest

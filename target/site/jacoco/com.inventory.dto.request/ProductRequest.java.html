@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProductRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">inventory-management</a> &gt; <a href="index.source.html" class="el_package">com.inventory.dto.request</a> &gt; <span class="el_source">ProductRequest.java</span></div><h1>ProductRequest.java</h1><pre class="source lang-java linenums">package com.inventory.dto.request;
+
+import com.inventory.validation.ValidProductName;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+<span class="pc bpc" id="L10" title="17 of 30 branches missed.">@Data</span>
+<span class="pc" id="L11">@Builder</span>
+<span class="fc" id="L12">@NoArgsConstructor</span>
+<span class="fc" id="L13">@AllArgsConstructor</span>
+public class ProductRequest {
+    @NotBlank(message = &quot;Product name is required&quot;)
+    @Size(min = 2, max = 100, message = &quot;Product name must be between 2 and 100 characters&quot;)
+    @ValidProductName
+<span class="fc" id="L18">    private String name;</span>
+
+    @Pattern(regexp = &quot;^$|^[A-Za-z0-9\\s\\-.,!?()]{10,500}$&quot;,
+            message = &quot;Description must be between 10 and 500 characters and can only contain letters, numbers, spaces, and basic punctuation&quot;)
+<span class="fc" id="L22">    private String description;</span>
+
+    @NotNull(message = &quot;Category ID is required&quot;)
+    @Positive(message = &quot;Category ID must be positive&quot;)
+<span class="fc" id="L26">    private Long categoryId;</span>
+
+    // Custom validation to ensure description is provided for certain product names
+    public boolean requiresDescription() {
+<span class="nc bnc" id="L30" title="All 2 branches missed.">        if (name == null) return false;</span>
+        // If product name contains certain keywords, description should be mandatory
+<span class="nc" id="L32">        String lowercaseName = name.toLowerCase();</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        return lowercaseName.contains(&quot;set&quot;) ||</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">               lowercaseName.contains(&quot;kit&quot;) ||</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">               lowercaseName.contains(&quot;bundle&quot;) ||</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">               lowercaseName.contains(&quot;collection&quot;);</span>
+    }
+} 
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

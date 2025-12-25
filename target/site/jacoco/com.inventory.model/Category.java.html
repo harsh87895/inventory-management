@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Category.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">inventory-management</a> &gt; <a href="index.source.html" class="el_package">com.inventory.model</a> &gt; <span class="el_source">Category.java</span></div><h1>Category.java</h1><pre class="source lang-java linenums">package com.inventory.model;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = &quot;categories&quot;)
+@Getter
+<span class="fc" id="L14">@Setter</span>
+<span class="fc" id="L15">public class Category {</span>
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+<span class="fc" id="L18">    private Long id;</span>
+
+    @NotBlank(message = &quot;Category name is required&quot;)
+    @Column(unique = true, nullable = false)
+<span class="fc" id="L22">    private String name;</span>
+
+<span class="fc" id="L24">    @Column(nullable = false)</span>
+<span class="fc" id="L25">    private boolean active = true;</span>
+
+<span class="fc" id="L27">    @OneToMany(mappedBy = &quot;category&quot;, cascade = CascadeType.ALL)</span>
+<span class="fc" id="L28">    private List&lt;Product&gt; products = new ArrayList&lt;&gt;();</span>
+} 
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

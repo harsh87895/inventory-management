@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SKURequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">inventory-management</a> &gt; <a href="index.source.html" class="el_package">com.inventory.dto.request</a> &gt; <span class="el_source">SKURequest.java</span></div><h1>SKURequest.java</h1><pre class="source lang-java linenums">package com.inventory.dto.request;
+
+import com.inventory.validation.ValidPrice;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+
+<span class="pc bpc" id="L12" title="27 of 46 branches missed.">@Data</span>
+<span class="pc" id="L13">@Builder</span>
+<span class="fc" id="L14">@NoArgsConstructor</span>
+<span class="fc" id="L15">@AllArgsConstructor</span>
+public class SKURequest {
+    @NotNull(message = &quot;Product ID is required&quot;)
+    @Positive(message = &quot;Product ID must be positive&quot;)
+<span class="fc" id="L19">    private Long productId;</span>
+
+    @NotBlank(message = &quot;Color is required&quot;)
+    @Pattern(regexp = &quot;^[a-zA-Z\\s-]{2,50}$&quot;, 
+            message = &quot;Color must be 2-50 characters long and contain only letters, spaces, and hyphens&quot;)
+<span class="fc" id="L24">    private String color;</span>
+
+    @NotBlank(message = &quot;Size is required&quot;)
+    @Pattern(regexp = &quot;^(XS|S|M|L|XL|XXL|\\d{1,3}(cm)?|\\d{1,2}\\.\\d{1}(cm)?)$&quot;,
+            message = &quot;Size must be a valid format (XS, S, M, L, XL, XXL, or a number followed by optional 'cm')&quot;)
+<span class="fc" id="L29">    private String size;</span>
+
+    @NotNull(message = &quot;Price is required&quot;)
+    @ValidPrice
+<span class="fc" id="L33">    private BigDecimal price;</span>
+
+    @NotNull(message = &quot;Stock quantity is required&quot;)
+    @Min(value = 0, message = &quot;Stock quantity must be greater than or equal to 0&quot;)
+    @Max(value = 999999, message = &quot;Stock quantity cannot exceed 999,999&quot;)
+<span class="fc" id="L38">    private Integer stockQuantity;</span>
+} 
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProductValidationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">inventory-management</a> &gt; <a href="index.source.html" class="el_package">com.inventory.service.validation</a> &gt; <span class="el_source">ProductValidationService.java</span></div><h1>ProductValidationService.java</h1><pre class="source lang-java linenums">package com.inventory.service.validation;
+
+import com.inventory.dto.request.ProductRequest;
+import com.inventory.exception.ProductException;
+import com.inventory.exception.ResourceNotFoundException;
+import com.inventory.model.Category;
+import com.inventory.model.Product;
+import com.inventory.repository.CategoryRepository;
+import com.inventory.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@Service
+<span class="fc" id="L14">@RequiredArgsConstructor</span>
+public class ProductValidationService {
+
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+
+    public void validateProductCreation(ProductRequest request) {
+        // Check if category exists and is active
+<span class="fc" id="L22">        Category category = categoryRepository.findById(request.getCategoryId())</span>
+<span class="fc" id="L23">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Category&quot;, &quot;id&quot;, request.getCategoryId()));</span>
+        
+<span class="fc bfc" id="L25" title="All 2 branches covered.">        if (!category.isActive()) {</span>
+<span class="fc" id="L26">            throw ProductException.categoryNotActive(request.getCategoryId());</span>
+        }
+
+        // Check for duplicate product name in category
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        if (productRepository.existsByNameAndCategoryId(request.getName(), request.getCategoryId())) {</span>
+<span class="fc" id="L31">            throw ProductException.duplicateNameInCategory(request.getName(), request.getCategoryId());</span>
+        }
+
+        // Validate description requirement
+<span class="fc" id="L35">        validateDescription(request);</span>
+<span class="fc" id="L36">    }</span>
+
+    public void validateProductUpdate(Long productId, ProductRequest request) {
+<span class="fc" id="L39">        Product existingProduct = productRepository.findById(productId)</span>
+<span class="fc" id="L40">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Product&quot;, &quot;id&quot;, productId));</span>
+
+        // Check if category exists and is active
+<span class="fc" id="L43">        Category newCategory = categoryRepository.findById(request.getCategoryId())</span>
+<span class="pc" id="L44">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Category&quot;, &quot;id&quot;, request.getCategoryId()));</span>
+
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (!newCategory.isActive()) {</span>
+<span class="fc" id="L47">            throw ProductException.categoryNotActive(request.getCategoryId());</span>
+        }
+
+        // Check if category is being changed while product has SKUs
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (!existingProduct.getCategory().getId().equals(request.getCategoryId()) &amp;&amp; </span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">            !existingProduct.getSkus().isEmpty()) {</span>
+<span class="fc" id="L53">            throw ProductException.categoryChangeWithSKUs(</span>
+                productId, 
+<span class="fc" id="L55">                existingProduct.getCategory().getId(), </span>
+<span class="fc" id="L56">                request.getCategoryId()</span>
+            );
+        }
+
+        // Check for duplicate name in category (excluding current product)
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        if (!existingProduct.getName().equals(request.getName()) &amp;&amp;</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">            productRepository.existsByNameAndCategoryId(request.getName(), request.getCategoryId())) {</span>
+<span class="fc" id="L63">            throw ProductException.duplicateNameInCategory(request.getName(), request.getCategoryId());</span>
+        }
+
+        // Validate description requirement
+<span class="fc" id="L67">        validateDescription(request);</span>
+<span class="fc" id="L68">    }</span>
+
+    private void validateDescription(ProductRequest request) {
+        // Validate description requirement for special product types
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        boolean isSpecialType = request.getName() != null &amp;&amp; </span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">            (request.getName().toLowerCase().contains(&quot;set&quot;) ||</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">             request.getName().toLowerCase().contains(&quot;kit&quot;) ||</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">             request.getName().toLowerCase().contains(&quot;bundle&quot;) ||</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">             request.getName().toLowerCase().contains(&quot;collection&quot;));</span>
+
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        if (isSpecialType &amp;&amp; </span>
+<span class="pc bpc" id="L79" title="1 of 4 branches missed.">            (request.getDescription() == null || request.getDescription().trim().isEmpty())) {</span>
+<span class="fc" id="L80">            throw ProductException.invalidDescriptionFormat(</span>
+                &quot;Description is required for products with type: set, kit, bundle, or collection&quot;);
+        }
+
+        // Skip further validation if description is not provided and not required
+<span class="fc bfc" id="L85" title="All 2 branches covered.">        if (request.getDescription() == null) {</span>
+<span class="fc" id="L86">            return;</span>
+        }
+
+<span class="fc" id="L89">        String trimmedDescription = request.getDescription().trim();</span>
+        
+        // Check for empty or whitespace-only description
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (trimmedDescription.isEmpty()) {</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">            if (isSpecialType) {</span>
+<span class="nc" id="L94">                throw ProductException.invalidDescriptionFormat(</span>
+                    &quot;Description is required for products with type: set, kit, bundle, or collection&quot;);
+            }
+<span class="fc" id="L97">            return;</span>
+        }
+
+        // Check for maximum length
+<span class="fc bfc" id="L101" title="All 2 branches covered.">        if (trimmedDescription.length() &gt; 1000) {</span>
+<span class="fc" id="L102">            throw ProductException.invalidDescriptionFormat(</span>
+                &quot;Description cannot exceed 1000 characters&quot;);
+        }
+
+        // Check for common HTML injection attempts
+<span class="pc bpc" id="L107" title="1 of 4 branches missed.">        if (trimmedDescription.contains(&quot;&lt;&quot;) || trimmedDescription.contains(&quot;&gt;&quot;) ||</span>
+<span class="fc bfc" id="L108" title="All 4 branches covered.">            trimmedDescription.contains(&quot;javascript:&quot;) || trimmedDescription.contains(&quot;data:&quot;)) {</span>
+<span class="fc" id="L109">            throw ProductException.invalidDescriptionFormat(</span>
+                &quot;HTML tags and potentially harmful content are not allowed&quot;);
+        }
+
+        // Check for potential SQL injection patterns with case-insensitive check
+<span class="fc" id="L114">        String lowerDesc = trimmedDescription.toLowerCase();</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        if (lowerDesc.contains(&quot;select&quot;) ||</span>
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">            lowerDesc.contains(&quot;insert&quot;) ||</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">            lowerDesc.contains(&quot;update&quot;) ||</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">            lowerDesc.contains(&quot;delete&quot;) ||</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">            lowerDesc.contains(&quot;drop&quot;) ||</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">            lowerDesc.contains(&quot;union&quot;) ||</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">            trimmedDescription.contains(&quot;'&quot;) ||</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">            trimmedDescription.contains(&quot;\&quot;&quot;) ||</span>
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">            trimmedDescription.contains(&quot;;&quot;)) {</span>
+<span class="fc" id="L124">            throw ProductException.invalidDescriptionFormat(</span>
+                &quot;Invalid characters or SQL keywords detected&quot;);
+        }
+
+        // Check for reasonable word count and content
+<span class="fc" id="L129">        String[] words = trimmedDescription.split(&quot;\\s+&quot;);</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        if (words.length &lt; 3) {</span>
+<span class="fc" id="L131">            throw ProductException.invalidDescriptionFormat(</span>
+                &quot;Description must contain at least 3 words&quot;);
+        }
+
+        // Check for repeated characters (potential spam)
+<span class="fc bfc" id="L136" title="All 2 branches covered.">        if (hasRepeatedCharacters(trimmedDescription)) {</span>
+<span class="fc" id="L137">            throw ProductException.invalidDescriptionFormat(</span>
+                &quot;Description contains excessive repeated characters&quot;);
+        }
+<span class="fc" id="L140">    }</span>
+
+    private boolean hasRepeatedCharacters(String text) {
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">        if (text.length() &lt; 5) return false;</span>
+        
+<span class="fc" id="L145">        char prevChar = text.charAt(0);</span>
+<span class="fc" id="L146">        int repeatCount = 1;</span>
+<span class="fc" id="L147">        int maxAllowedRepeat = 4;</span>
+        
+<span class="fc bfc" id="L149" title="All 2 branches covered.">        for (int i = 1; i &lt; text.length(); i++) {</span>
+<span class="fc bfc" id="L150" title="All 2 branches covered.">            if (text.charAt(i) == prevChar) {</span>
+<span class="fc" id="L151">                repeatCount++;</span>
+<span class="fc bfc" id="L152" title="All 2 branches covered.">                if (repeatCount &gt; maxAllowedRepeat) {</span>
+<span class="fc" id="L153">                    return true;</span>
+                }
+            } else {
+<span class="fc" id="L156">                repeatCount = 1;</span>
+<span class="fc" id="L157">                prevChar = text.charAt(i);</span>
+            }
+        }
+<span class="fc" id="L160">        return false;</span>
+    }
+
+    public void validateProductDeletion(Long productId) {
+<span class="fc" id="L164">        Product product = productRepository.findById(productId)</span>
+<span class="fc" id="L165">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Product&quot;, &quot;id&quot;, productId));</span>
+
+<span class="fc bfc" id="L167" title="All 2 branches covered.">        if (!product.getSkus().isEmpty()) {</span>
+<span class="fc" id="L168">            throw ProductException.hasActiveSKUs(productId);</span>
+        }
+<span class="fc" id="L170">    }</span>
+} 
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

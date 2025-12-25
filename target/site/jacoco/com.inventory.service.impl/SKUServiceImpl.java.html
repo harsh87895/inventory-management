@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SKUServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">inventory-management</a> &gt; <a href="index.source.html" class="el_package">com.inventory.service.impl</a> &gt; <span class="el_source">SKUServiceImpl.java</span></div><h1>SKUServiceImpl.java</h1><pre class="source lang-java linenums">package com.inventory.service.impl;
+
+import com.inventory.dto.request.SKURequest;
+import com.inventory.dto.response.SKUResponse;
+import com.inventory.exception.ResourceNotFoundException;
+import com.inventory.model.Product;
+import com.inventory.model.SKU;
+import com.inventory.repository.ProductRepository;
+import com.inventory.repository.SKURepository;
+import com.inventory.service.SKUService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+<span class="fc" id="L19">@RequiredArgsConstructor</span>
+@Transactional(readOnly = true)
+public class SKUServiceImpl implements SKUService {
+
+    private final SKURepository skuRepository;
+    private final ProductRepository productRepository;
+
+    @Override
+    @Transactional
+    public SKUResponse createSKU(SKURequest request) {
+        // Verify product exists
+<span class="fc" id="L30">        Product product = productRepository.findById(request.getProductId())</span>
+<span class="fc" id="L31">            .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Product&quot;, &quot;id&quot;, request.getProductId()));</span>
+
+        // Check if SKU with same color and size exists for the product
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        if (skuRepository.existsByProductIdAndColorAndSize(</span>
+<span class="fc" id="L35">                request.getProductId(), request.getColor(), request.getSize())) {</span>
+<span class="fc" id="L36">            throw new DataIntegrityViolationException(</span>
+<span class="fc" id="L37">                String.format(&quot;SKU with color '%s' and size '%s' already exists for this product&quot;,</span>
+<span class="fc" id="L38">                    request.getColor(), request.getSize()));</span>
+        }
+
+<span class="fc" id="L41">        SKU sku = new SKU();</span>
+<span class="fc" id="L42">        sku.setProduct(product);</span>
+<span class="fc" id="L43">        sku.setColor(request.getColor());</span>
+<span class="fc" id="L44">        sku.setSize(request.getSize());</span>
+<span class="fc" id="L45">        sku.setPrice(request.getPrice());</span>
+<span class="fc" id="L46">        sku.setStockQuantity(request.getStockQuantity());</span>
+
+<span class="fc" id="L48">        SKU savedSKU = skuRepository.save(sku);</span>
+<span class="fc" id="L49">        return mapToSKUResponse(savedSKU);</span>
+    }
+
+    @Override
+    @Transactional
+    public SKUResponse updateSKU(Long id, SKURequest request) {
+<span class="fc" id="L55">        SKU sku = skuRepository.findByIdWithProductAndCategory(id);</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        if (sku == null) {</span>
+<span class="fc" id="L57">            throw new ResourceNotFoundException(&quot;SKU&quot;, &quot;id&quot;, id);</span>
+        }
+
+        // If product is being changed, verify new product exists
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (!sku.getProduct().getId().equals(request.getProductId())) {</span>
+<span class="fc" id="L62">            Product newProduct = productRepository.findById(request.getProductId())</span>
+<span class="pc" id="L63">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Product&quot;, &quot;id&quot;, request.getProductId()));</span>
+
+            // Check if SKU with same color and size exists for the new product
+<span class="fc bfc" id="L66" title="All 2 branches covered.">            if (skuRepository.existsByProductIdAndColorAndSize(</span>
+<span class="fc" id="L67">                    request.getProductId(), request.getColor(), request.getSize())) {</span>
+<span class="fc" id="L68">                throw new DataIntegrityViolationException(</span>
+<span class="fc" id="L69">                    String.format(&quot;SKU with color '%s' and size '%s' already exists for the target product&quot;,</span>
+<span class="fc" id="L70">                        request.getColor(), request.getSize()));</span>
+            }
+<span class="fc" id="L72">            sku.setProduct(newProduct);</span>
+        }
+
+<span class="fc" id="L75">        sku.setColor(request.getColor());</span>
+<span class="fc" id="L76">        sku.setSize(request.getSize());</span>
+<span class="fc" id="L77">        sku.setPrice(request.getPrice());</span>
+<span class="fc" id="L78">        sku.setStockQuantity(request.getStockQuantity());</span>
+
+<span class="fc" id="L80">        SKU updatedSKU = skuRepository.save(sku);</span>
+<span class="fc" id="L81">        return mapToSKUResponse(updatedSKU);</span>
+    }
+
+    @Override
+    public SKUResponse getSKUById(Long id) {
+<span class="fc" id="L86">        SKU sku = skuRepository.findByIdWithProductAndCategory(id);</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        if (sku == null) {</span>
+<span class="fc" id="L88">            throw new ResourceNotFoundException(&quot;SKU&quot;, &quot;id&quot;, id);</span>
+        }
+<span class="fc" id="L90">        return mapToSKUResponse(sku);</span>
+    }
+
+    @Override
+    public Page&lt;SKUResponse&gt; getSKUsByProductId(Long productId, Pageable pageable) {
+        // Verify product exists
+<span class="fc bfc" id="L96" title="All 2 branches covered.">        if (!productRepository.existsById(productId)) {</span>
+<span class="fc" id="L97">            throw new ResourceNotFoundException(&quot;Product&quot;, &quot;id&quot;, productId);</span>
+        }
+<span class="fc" id="L99">        return skuRepository.findByProductId(productId, pageable)</span>
+<span class="fc" id="L100">            .map(this::mapToSKUResponse);</span>
+    }
+
+    @Override
+    @Transactional
+    public void deleteSKU(Long id) {
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        if (!skuRepository.existsById(id)) {</span>
+<span class="fc" id="L107">            throw new ResourceNotFoundException(&quot;SKU&quot;, &quot;id&quot;, id);</span>
+        }
+<span class="fc" id="L109">        skuRepository.deleteById(id);</span>
+<span class="fc" id="L110">    }</span>
+
+    private SKUResponse mapToSKUResponse(SKU sku) {
+<span class="fc" id="L113">        return SKUResponse.builder()</span>
+<span class="fc" id="L114">            .id(sku.getId())</span>
+<span class="fc" id="L115">            .productId(sku.getProduct().getId())</span>
+<span class="fc" id="L116">            .productName(sku.getProduct().getName())</span>
+<span class="fc" id="L117">            .color(sku.getColor())</span>
+<span class="fc" id="L118">            .size(sku.getSize())</span>
+<span class="fc" id="L119">            .price(sku.getPrice())</span>
+<span class="fc" id="L120">            .stockQuantity(sku.getStockQuantity())</span>
+<span class="fc" id="L121">            .categoryName(sku.getProduct().getCategory().getName())</span>
+<span class="fc" id="L122">            .build();</span>
+    }
+} 
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

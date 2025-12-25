@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SKUException.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">inventory-management</a> &gt; <a href="index.source.html" class="el_package">com.inventory.exception</a> &gt; <span class="el_source">SKUException.java</span></div><h1>SKUException.java</h1><pre class="source lang-java linenums">package com.inventory.exception;
+
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
+
+import java.math.BigDecimal;
+
+@Getter
+public class SKUException extends RuntimeException {
+<span class="fc" id="L10">    private final HttpStatus status;</span>
+<span class="fc" id="L11">    private final String code;</span>
+
+    public SKUException(String message, String code, HttpStatus status) {
+<span class="fc" id="L14">        super(message);</span>
+<span class="fc" id="L15">        this.code = code;</span>
+<span class="fc" id="L16">        this.status = status;</span>
+<span class="fc" id="L17">    }</span>
+
+    public static SKUException duplicateColorAndSize(String color, String size, Long productId) {
+<span class="fc" id="L20">        return new SKUException(</span>
+<span class="fc" id="L21">            String.format(&quot;SKU with color '%s' and size '%s' already exists for product ID: %d&quot;, color, size, productId),</span>
+            &quot;SKU_001&quot;,
+            HttpStatus.CONFLICT
+        );
+    }
+
+    public static SKUException insufficientStock(Long skuId, Integer requested, Integer available) {
+<span class="fc" id="L28">        return new SKUException(</span>
+<span class="fc" id="L29">            String.format(&quot;Insufficient stock for SKU ID: %d. Requested: %d, Available: %d&quot;, skuId, requested, available),</span>
+            &quot;SKU_002&quot;,
+            HttpStatus.BAD_REQUEST
+        );
+    }
+
+    public static SKUException invalidPriceUpdate(Long skuId, BigDecimal oldPrice, BigDecimal newPrice) {
+<span class="fc" id="L36">        return new SKUException(</span>
+<span class="fc" id="L37">            String.format(&quot;Invalid price update for SKU ID: %d. Price cannot be reduced by more than 50%%. Old price: %.2f, New price: %.2f&quot;, </span>
+                skuId, oldPrice, newPrice),
+            &quot;SKU_003&quot;,
+            HttpStatus.BAD_REQUEST
+        );
+    }
+} 
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>

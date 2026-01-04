@@ -1,5 +1,4 @@
 # Building a Spring Boot inventory system
-_Exported on 7/14/2025 at 21:38:23 GMT+5:30 from Cursor (1.2.4)_
 
 ---
 
